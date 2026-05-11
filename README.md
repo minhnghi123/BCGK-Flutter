@@ -2,7 +2,7 @@
 
 A full-stack restaurant ordering application built with **Flutter** (mobile frontend) and **Node.js / Express** (REST API backend), backed by a **PostgreSQL** database hosted on Neon.
 
-**Author:** Nguyen Ho Minh — minhhnghiii@gmail.com
+**Author:** Nguyen Minh Nghi — minhhnghiii@gmail.com
 
 ---
 
