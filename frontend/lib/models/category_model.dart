@@ -11,9 +11,10 @@ class CategoryModel {
 
   factory CategoryModel.fromJson(Map<String, dynamic> data) {
     return CategoryModel(
-      id: data['_id'] as String? ?? data['id'] as String? ?? '',
+      id: (data['id'] ?? data['_id'])?.toString() ?? '',
       name: data['name'] as String? ?? '',
-      imageUrl: data['imageUrl'] as String? ?? '',
+      // backend returns image_url (snake_case from PostgreSQL)
+      imageUrl: data['image_url'] as String? ?? data['imageUrl'] as String? ?? '',
     );
   }
 

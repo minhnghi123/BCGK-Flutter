@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../store/index.dart';
-import '../services/auth_service.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/cart_badge_icon.dart';
 import '../widgets/category_card.dart';
@@ -15,15 +15,14 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  bool _loaded = false;
-
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_loaded) {
-      _loaded = true;
-      context.read<AppProvider>().fetchInitialData();
-    }
+  void initState() {
+    super.initState();
+    // Defer until after the first frame to avoid calling notifyListeners
+    // synchronously during the widget build/lifecycle setup phase.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<AppProvider>().fetchInitialData();
+    });
   }
 
   @override
@@ -32,27 +31,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       appBar: AppBar(
         title: Consumer<AppProvider>(
           builder: (context, provider, _) => Text(
-            provider.userLogin?.username ?? 'Restaurant App',
+            provider.userLogin?.fullName ?? 'Restaurant App',
           ),
         ),
         actions: [
           const CartBadgeIcon(),
           Consumer<AppProvider>(
             builder: (context, provider, _) {
-              if (provider.userLogin != null) {
-                return IconButton(
-                  icon: const Icon(Icons.logout),
-                  tooltip: 'Logout',
-                  onPressed: () async {
-                    await AuthService.signOut();
-                    provider.setUserLogin(null);
-                    if (context.mounted) context.go('/login');
-                  },
-                );
-              }
               return IconButton(
-                icon: const Icon(Icons.login),
-                onPressed: () => context.go('/login'),
+                icon: const Icon(Icons.logout),
+                tooltip: 'Logout',
+                onPressed: () async {
+                  await provider.setUserLogin(null);
+                  if (context.mounted) context.go('/login');
+                },
               );
             },
           ),
@@ -61,9 +53,60 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       drawer: const AppDrawer(),
       body: Consumer<AppProvider>(
         builder: (context, provider, _) {
-          if (provider.categories.isEmpty) {
+          // Still loading
+          if (provider.isFetchingData) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          // Failed to load — show error + retry
+          if (provider.fetchError != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wifi_off, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(
+                      provider.fetchError!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => provider.fetchInitialData(),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Loaded but no categories seeded in DB yet
+          if (provider.categories.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.restaurant_menu,
+                      size: 64, color: Colors.grey),
+                  const SizedBox(height: 12),
+                  const Text('No categories found',
+                      style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => provider.fetchInitialData(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -103,8 +103,7 @@ class CartScreen extends StatelessWidget {
                 ),
                 const Spacer(),
                 ElevatedButton(
-                  onPressed: () =>
-                      context.go('/payment', extra: provider.totalPay),
+                  onPressed: () => context.go('/payment'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,

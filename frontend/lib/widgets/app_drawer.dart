@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../store/index.dart';
-import '../services/auth_service.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -29,7 +28,7 @@ class AppDrawer extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      user?.username ?? 'Guest',
+                      user?.fullName ?? 'Guest',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -38,7 +37,8 @@ class AppDrawer extends StatelessWidget {
                     ),
                     Text(
                       user?.email ?? '',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),
@@ -60,7 +60,8 @@ class AppDrawer extends StatelessWidget {
                         backgroundColor: Colors.red,
                         child: Text(
                           '${provider.cartCount}',
-                          style: const TextStyle(color: Colors.white, fontSize: 10),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 10),
                         ),
                       )
                     : null,
@@ -72,10 +73,10 @@ class AppDrawer extends StatelessWidget {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                title:
+                    const Text('Logout', style: TextStyle(color: Colors.red)),
                 onTap: () async {
-                  await AuthService.signOut();
-                  provider.setUserLogin(null);
+                  await provider.setUserLogin(null);
                   if (context.mounted) context.go('/login');
                 },
               ),

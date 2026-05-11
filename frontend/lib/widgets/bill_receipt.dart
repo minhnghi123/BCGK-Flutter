@@ -28,7 +28,7 @@ class BillReceipt extends StatelessWidget {
                   value: '₹${provider.itemsTotal.toStringAsFixed(2)}',
                 ),
                 _BillRow(
-                  label: 'Offer Discount (2%)',
+                  label: 'Offer Discount (1.7%)',
                   value: '-₹${provider.discount.toStringAsFixed(2)}',
                   valueColor: Colors.green,
                 ),

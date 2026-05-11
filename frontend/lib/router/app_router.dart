@@ -61,10 +61,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/payment',
       name: 'payment',
-      builder: (context, state) {
-        final total = state.extra as double? ?? 0.0;
-        return PaymentScreen(total: total);
-      },
+      builder: (context, state) => const PaymentScreen(),
     ),
   ],
 );

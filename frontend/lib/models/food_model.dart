@@ -15,11 +15,13 @@ class FoodModel {
 
   factory FoodModel.fromJson(Map<String, dynamic> data) {
     return FoodModel(
-      id: data['_id'] as String? ?? data['id'] as String? ?? '',
+      id: (data['id'] ?? data['_id'])?.toString() ?? '',
       name: data['name'] as String? ?? '',
-      category: data['category'] as String? ?? '',
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
-      imageUrl: data['imageUrl'] as String? ?? '',
+      // backend returns category_name from the JOIN
+      category: data['category_name'] as String? ?? data['category'] as String? ?? '',
+      price: double.tryParse(data['price']?.toString() ?? '') ?? 0.0,
+      // backend returns image_url (snake_case)
+      imageUrl: data['image_url'] as String? ?? data['imageUrl'] as String? ?? '',
     );
   }
 

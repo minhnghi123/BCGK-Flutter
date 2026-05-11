@@ -28,17 +28,18 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      final user = await AuthService.signIn(
+      final (user, token) = await AuthService.signIn(
         _emailController.text.trim(),
         _passwordController.text,
       );
       if (!mounted) return;
-      context.read<AppProvider>().setUserLogin(user);
+      await context.read<AppProvider>().setUserLogin(user, token: token);
+      if (!mounted) return;
       context.go('/categories');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sai email hoặc password')),
+        SnackBar(content: Text(e.toString())),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -47,17 +48,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _showForgotPassword() async {
     final emailCtrl = TextEditingController();
+    final newPasswordCtrl = TextEditingController();
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Forgot Password'),
-        content: TextField(
-          controller: emailCtrl,
-          keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(
-            labelText: 'Enter your email',
-            border: OutlineInputBorder(),
-          ),
+        title: const Text('Reset Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: newPasswordCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'New Password',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -67,22 +83,23 @@ class _LoginScreenState extends State<LoginScreen> {
           ElevatedButton(
             onPressed: () async {
               final email = emailCtrl.text.trim();
-              if (email.isEmpty) return;
+              final newPassword = newPasswordCtrl.text;
+              if (email.isEmpty || newPassword.isEmpty) return;
               Navigator.of(ctx).pop();
               try {
-                await AuthService.forgotPassword(email);
+                await AuthService.forgotPassword(email, newPassword);
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Password reset email sent to $email')),
+                  const SnackBar(content: Text('Password reset successfully')),
                 );
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Failed to send reset email')),
+                  SnackBar(content: Text(e.toString())),
                 );
               }
             },
-            child: const Text('Send'),
+            child: const Text('Reset'),
           ),
         ],
       ),
@@ -115,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    hintText: 'Test@gmail.com',
+                    hintText: 'Email',
                     border: UnderlineInputBorder(),
                   ),
                   validator: (v) =>

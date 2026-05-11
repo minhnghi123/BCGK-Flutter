@@ -13,13 +13,15 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _fullNameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -28,12 +30,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      final user = await AuthService.register(
-        _usernameController.text.trim(),
+      final (user, token) = await AuthService.register(
+        _emailController.text.trim(),
         _passwordController.text,
+        _fullNameController.text.trim(),
       );
       if (!mounted) return;
-      context.read<AppProvider>().setUserLogin(user);
+      await context.read<AppProvider>().setUserLogin(user, token: token);
+      if (!mounted) return;
       context.go('/categories');
     } catch (e) {
       if (!mounted) return;
@@ -74,13 +78,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
-                  controller: _usernameController,
+                  controller: _fullNameController,
                   decoration: const InputDecoration(
-                    hintText: 'Username',
+                    hintText: 'Full Name',
                     border: UnderlineInputBorder(),
                   ),
                   validator: (v) =>
-                      v == null || v.isEmpty ? 'Enter a username' : null,
+                      v == null || v.isEmpty ? 'Enter your full name' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    hintText: 'Email',
+                    border: UnderlineInputBorder(),
+                  ),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter your email' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
